@@ -17,13 +17,26 @@ db.open(function(err, db) {
 	
 	browser.connect(function() {
 		console.log("Accueil");
-		browser.clickLink("Liste des consultations", function() {
-			console.log("Liste des consultations");
-			dao.coll.find({etat: {'$ne': "Terminé"}}, {'_id': 1, etat: 1}, {limit: 1}).each(function(err, result) {
-				if (err) {console.log(err);}
+		var link = browser.link("Liste des consultations");
+		dao.coll.find({etat: {'$ne': "Terminé"}}, {'_id': 1, etat: 1}, {limit: 1}).each(function(err, result) {
+			if (err) {console.log(err);}
+			if (result) {
+				var tab = browser.open({name: "test"});
+				browser.visit(link, function () {
+					// Liste des consultations
+					console.log("Visit: " + browser.tabs.index);
+				});
+				browser.tabs.current = browser.tabs[0];
+				console.log("Accueil: " + browser.tabs.index);
+				browser.tabs.current = browser.tabs[1];
+				console.log("Test: " + browser.tabs.index);
+			}
+			/*browser.clickLink("Accueil", function() {
+				console.log("ok");
 				//open tab!
-				if (result) {
+				/*if (result) {
 					console.log(result._id);
+					browser.open
 					browser.recherche({reference: result._id}, function() {
 						console.log("Recherche effectuée");
 						if (browser.query("table.matrix > tbody > tr")) {
@@ -36,7 +49,7 @@ db.open(function(err, db) {
 						}
 					});
 				}
-			});
+			});*/
 		});
 	});
 /*
