@@ -13,26 +13,33 @@ db.open(function(err, db) {
 	if (err) throw err;
 	
 	var dao = new DAO(db);
+	browser = new Browser();
 	
-	dao.find({etat: {'$ne': "Terminé"}}, function(err, result) {
-		for (var i = 0; i < result.length; i++) {
-		//open tab!
-			browser.recherche({reference: result[i]._id}, function() {
-				if (browser.query("table #matrix > tbody > tr")) {
-					let status = browser.queryAll("table #matrix > tbody > tr > td")[4].innerHTML
-					if (status != result[i].etat) {
-						dao.update({_id: result[i]._id}, {'$set': {etat: status}});
-					}
-				} else {
-					console.log("Erreur non fatale : L'AO " + result[i]._id + " est présent dans la base mais pas dans Iliade.");
+	browser.connect(function() {
+		console.log("Accueil");
+		browser.clickLink("Liste des consultations", function() {
+			console.log("Liste des consultations");
+			dao.coll.find({etat: {'$ne': "Terminé"}}, {'_id': 1, etat: 1}, {limit: 1}).each(function(err, result) {
+				if (err) {console.log(err);}
+				//open tab!
+				if (result) {
+					console.log(result._id);
+					browser.recherche({reference: result._id}, function() {
+						console.log("Recherche effectuée");
+						if (browser.query("table.matrix > tbody > tr")) {
+							var status = browser.queryAll("table.matrix > tbody > tr > td")[4].innerHTML
+							if (status != result.etat) {
+								dao.update({_id: result._id}, {'$set': {etat: status}});
+							}
+						} else {
+							console.log("Erreur non fatale : L'AO " + result[i]._id + " est présent dans la base mais pas dans Iliade.");
+						}
+					});
 				}
 			});
-			
-		}
+		});
 	});
-
-	browser = new Browser();
-
+/*
 	var visitNextPage = function(newPage) {
 		var processNewPage = function () {
 			console.log("new page function");
@@ -92,4 +99,5 @@ db.open(function(err, db) {
 			});
 		});
 	});
+*/
 });

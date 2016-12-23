@@ -4,8 +4,11 @@ var DAO = function(db) {
 	var that = this;
 	this.db = db;
 	this.coll = db.collection('test');
-	this.find = function (query, callback) {
-		that.coll.find(query, callback);
+	this.update = function (query, update) {
+		that.coll.update(query, update, function (err, count, operationStatus) {
+			if (err) {console.log(err); console.log(operationStatus);};
+			if (query._id) {console.log("Updated " + query._id)};
+		});
 	};
 	this.saveAO = function (document) {
 		var coll = that.coll;
