@@ -17,100 +17,28 @@ db.open(function(err, db) {
 	
 	browser.connect(function() {
 		console.log("Accueil");
-		var link = browser.link("Liste des consultations");
-		dao.coll.find({etat: {'$ne': "Terminé"}}, {'_id': 1, etat: 1}, {limit: 1}).each(function(err, result) {
-			if (err) {console.log(err);}
-			if (result) {
-				var tab = browser.open({name: "test"});
-				browser.visit(link, function () {
-					// Liste des consultations
-					console.log("Visit: " + browser.tabs.index);
-				});
-				browser.tabs.current = browser.tabs[0];
-				console.log("Accueil: " + browser.tabs.index);
-				browser.tabs.current = browser.tabs[1];
-				console.log("Test: " + browser.tabs.index);
-			}
-			/*browser.clickLink("Accueil", function() {
-				console.log("ok");
-				//open tab!
-				/*if (result) {
-					console.log(result._id);
-					browser.open
+		browser.clickLink("Liste des consultations", function () {
+			var cursor = dao.coll.find({etat: {'$ne': "Terminé"}}, {'_id': 1, etat: 1}, {limit: 20});
+			function nextObjFct (err, result) {
+				if (err) {console.log(err);}
+				if (result) {
 					browser.recherche({reference: result._id}, function() {
-						console.log("Recherche effectuée");
-						if (browser.query("table.matrix > tbody > tr")) {
-							var status = browser.queryAll("table.matrix > tbody > tr > td")[4].innerHTML
-							if (status != result.etat) {
-								dao.update({_id: result._id}, {'$set': {etat: status}});
+						console.log("Searched " + result._id);
+						var line = browser.querySelector("table.matrix > tbody > tr");
+						if (line) {
+							var lineElts = line.querySelectorAll("td");
+							if (lineElts[0].children[0].innerHTML.match(new RegExp(result._id)) && lineElts[4].innerHTML != result.etat) {
+								dao.update({'_id': result._id}, {'$set': {etat: lineElts[4].innerHTML}});
 							}
-						} else {
-							console.log("Erreur non fatale : L'AO " + result[i]._id + " est présent dans la base mais pas dans Iliade.");
 						}
+						cursor.nextObject(nextObjFct);
 					});
+				} else {
+					cursor.close();
+					db.close();
 				}
-			});*/
-		});
-	});
-/*
-	var visitNextPage = function(newPage) {
-		var processNewPage = function () {
-			console.log("new page function");
-			var pagingText = browser.queryAll("div.paging > ul > li > span")[2].innerHTML;
-			var maxPages = pagingText.substring(11);
-			
-			if (newPage <= maxPages) {
-				browser.fill("input[name=pageNb]", newPage);
-				var form = browser.queryAll("form")[1];
-				form.submit();
-				
-				browser.wait()
-					.then(function() {
-						console.log(browser.queryAll("div.paging > ul > li > span")[2].innerHTML);
-						
-						var links = browser.queryAll("a");
-						return {
-							page: newPage,
-							links: links
-						};
-					}).then(visitNextAO);
-			} else {
-				console.log("Insertion completed");
-				db.close();
-				process.exit();
 			}
-		}
-		
-		if (browser.query("Liste des consultations")) {
-			browser.clickLink("Liste des consultations", processNewPage);
-		} else {
-			processNewPage();
-		}
-	};
-
-	browser.connect(function() {
-		console.log("Accueil");
-		browser.clickLink("Liste des consultations", function() {
-			console.log("Liste des consultations");
-			browser.clickLink("Date de la première diffusion", function() {
-				browser.clickLink("Date de la première diffusion", function() {
-					console.log("Tri effectué");
-					var page;
-					if (browser.query("div.paging")) {
-						var paging = browser.queryAll("div.paging > ul > li > span")[2].innerHTML;
-						console.log(paging); // "Page p sur n"
-						page = 1;
-					}
-					
-					var links = browser.queryAll("a");
-					var options = {
-						page: page,
-						links: links
-					};
-					visitNextAO(options);
-				});
-			});
+			cursor.nextObject(nextObjFct);
 		});
 	});
-*/
 });

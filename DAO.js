@@ -4,8 +4,8 @@ var DAO = function(db) {
 	var that = this;
 	this.db = db;
 	this.coll = db.collection('test');
-	this.update = function (query, update) {
-		that.coll.update(query, update, function (err, count, operationStatus) {
+	this.update = function (query, updateDoc) {
+		that.coll.update(query, updateDoc, function (err, count, operationStatus) {
 			if (err) {console.log(err); console.log(operationStatus);};
 			if (query._id) {console.log("Updated " + query._id)};
 		});
